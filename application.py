@@ -331,7 +331,41 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        symbol = request.form.get("symbol")
+        quantity = request.form.get("shares")
+
+        #TODO
+        #render apology if user failes to select stock or if user does not own any shares
+        #if quantity is not a positive int render apology
+        #if user does not own that many shares of said stock return apology
+
+
+        print(symbol)
+        print(quantity)
+
+        flash("Sold!")
+        return redirect("/")
+
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        # we need to query the finance table to get stock list for current user
+        stock_list_query = db.execute("SELECT DISTINCT symbol FROM transactions WHERE user_id =  :user_id",
+                          user_id = session["user_id"])
+        stock_list = []
+
+        for item in stock_list_query:
+            stock_list.append(item['symbol'])
+
+        print(stock_list)
+
+        return render_template("sell.html", stock_list = stock_list)
+
+
 
 
 def errorhandler(e):
