@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+    Bought
+{% endblock %}
+
+<!--
+
+Complete the implementation of index in such a way that it displays an HTML table summarizing,
+for the user currently logged in, which stocks the user owns, the numbers of shares owned,
+the current price of each stock, and the total value of each holding (i.e., shares times price).
+Also display the user’s current cash balance along with a grand total (i.e., stocks’ total value plus cash).
+
+Odds are you’ll want to execute multiple SELECTs. Depending on how you implement your table(s), you might find GROUP BY HAVING SUM and/or WHERE of interest.
+Odds are you’ll want to call lookup for each stock.
+
+-->
+
+
+
+
+{% block main %}
+
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Shares</th>
+            <th>Price</th>
+            <th>TOTAL</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td colspan="4"></td>
+
+        </tr>
+    </tfoot>
+
+</table>
+
+{% endblock %}

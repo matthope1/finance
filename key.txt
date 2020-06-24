@@ -1,0 +1,9 @@
+
+
+api key:
+
+pk_64408db53eb84b29becd7614386da918
+
+
+
+$ export API_KEY=value
