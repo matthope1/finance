@@ -48,6 +48,8 @@ main img
     max-width: 100%;
 }
 
+
+
 .wrapper {
     max-width: 1200px;
     width: 90%;
@@ -61,4 +63,18 @@ main img
     display: block;
     margin: 0 auto;
     margin-top: 20px;
+}
+
+/* index page */
+
+.index-table {
+    text-align: left;
+}
+
+#index-total {
+    font-weight: bold;
+}
+
+.stock-symbol {
+    text-transform: uppercase;
 }

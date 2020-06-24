@@ -54,42 +54,50 @@ def index():
     # multipy by current stock price using lookup
     # to find the total amount for any given stock
 
+    #to send this data to the index page
+    #we can create a 2d array to store symbol name shares price total
+    #for each of the stocks that the current user owns
+    #then we can display a a tr with 5 tds on the index page with afformententioned info
+
+
     stock_list = db.execute("SELECT DISTINCT symbol FROM transactions WHERE user_id =  :user_id",
                           user_id = session["user_id"])
 
-    print(stock_list)
+    cash_query = db.execute("SELECT cash from users where id = :user_id", user_id = session["user_id"])
 
-    stock_sum_dict = {}
+    cash = round(cash_query[0]["cash"], 2)
+
+    #2d list to store stock data
+    stock_info_list = [] #symbol Name Shares Price TOTAL
+
 
     for item in stock_list:
-        symbol = item['symbol']
+        stock_symbol = item['symbol']
+
+        stock_lookup = lookup(stock_symbol)
+
+        stock_name = stock_lookup["name"]
+        stock_price = stock_lookup["price"]
+
+        num_of_shares_query = db.execute("SELECT SUM(shares) FROM transactions WHERE user_id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = stock_symbol)
+
+        num_of_shares_owned = num_of_shares_query[0]['SUM(shares)']
+        # print(item)
+        stock_info_list.append([stock_symbol, stock_name, num_of_shares_owned, stock_price, stock_price * num_of_shares_owned ])
 
 
-        stock_sum = db.execute("SELECT SUM(shares) FROM transactions WHERE user_id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = symbol)
 
-        print(item)
+    total = 0
+    for item in stock_info_list:
+        total = total + item[4]
+        # print(item)
 
-        stock_sum_dict[symbol] = stock_sum[0]['SUM(shares)']
-
-
-    print()
-    print(stock_sum_dict)
-    print()
-    for item in stock_sum_dict:
-        print(item,stock_sum_dict[item])
-    print()
-    print()
-
-
-    #we can store symbol and sum of shares from all transactions in a dictionary
-    # aapl: 3  tsla: 1
-
-
+    total = round(total + cash, 2)
 
 
 
 
-    return render_template("index.html")
+    return render_template("index.html", stock_info_list = stock_info_list, cash = cash, total = total)
 
 
 
