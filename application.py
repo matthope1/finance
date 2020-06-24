@@ -77,13 +77,13 @@ def index():
         stock_lookup = lookup(stock_symbol)
 
         stock_name = stock_lookup["name"]
-        stock_price = stock_lookup["price"]
+        price_per_share = stock_lookup["price"]
 
         num_of_shares_query = db.execute("SELECT SUM(shares) FROM transactions WHERE user_id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = stock_symbol)
 
         num_of_shares_owned = num_of_shares_query[0]['SUM(shares)']
         # print(item)
-        stock_info_list.append([stock_symbol, stock_name, num_of_shares_owned, stock_price, stock_price * num_of_shares_owned ])
+        stock_info_list.append([stock_symbol, stock_name, num_of_shares_owned, price_per_share, price_per_share * num_of_shares_owned ])
 
 
 
@@ -93,8 +93,6 @@ def index():
         # print(item)
 
     total = round(total + cash, 2)
-
-
 
 
     return render_template("index.html", stock_info_list = stock_info_list, cash = cash, total = total)
@@ -335,17 +333,65 @@ def sell():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        symbol = request.form.get("symbol")
-        quantity = request.form.get("shares")
+        stock_symbol = request.form.get("symbol")
+        sell_quantity = int(request.form.get("shares"))
+
+
+
+        #render apology if user fails to select stock or if user does not own any shares CHECK
+        #if quantity is not a positive int render apology CHECK
+        #if user does not own that many shares of said stock return apology CHECK
+
+        if not stock_symbol:
+            return apology("missing symbol")
+
+        if not sell_quantity:
+            return apology("missing shares")
+
+        if sell_quantity < 0:
+            return apology("Number of shares must be greater than 0")
+
+
+        num_of_shares_query = db.execute("SELECT SUM(shares) FROM transactions WHERE id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = stock_symbol)
+        num_of_shares_owned = num_of_shares_query[0]['SUM(shares)']
+
+
+        print(num_of_shares_owned, sell_quantity)
+        print(num_of_shares_owned >= sell_quantity)
+
+        if not (num_of_shares_owned > 0 and num_of_shares_owned >= sell_quantity):
+            return apology("not enough shares owned")
 
         #TODO
-        #render apology if user failes to select stock or if user does not own any shares
-        #if quantity is not a positive int render apology
-        #if user does not own that many shares of said stock return apology
+        #if everythings good then you need to update user table and transactions table to reflect the sell for
+        #current user
+        #users table: we need to add the amount of cash that user will get from selling stock
+
+        stock_lookup = lookup(stock_symbol)
+
+        price_per_share = stock_lookup["price"]
 
 
-        print(symbol)
-        print(quantity)
+        current_cash = db.execute("SELECT cash FROM users WHERE id = :user_id",
+              user_id = session["user_id"])
+
+        cash = current_cash[0]["cash"]
+
+        cash_to_add = cash + price_per_share * sell_quantity
+
+        sell_quantity = sell_quantity * - 1; #change sell quantity to a negative number
+
+        #update logged in users's cash to reflect amount gained from selling shares
+        db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash = cash_to_add, user_id = session["user_id"])
+
+        #add new transaction to transactions table
+        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date) VALUES(:user_id, :symbol, :shares, :price, CURRENT_TIMESTAMP) ",
+                        user_id = session["user_id"], symbol = stock_symbol, shares = sell_quantity, price = price_per_share)
+
+
+
+        # print(stock_symbol)
+        # print(sell_quantity)
 
         flash("Sold!")
         return redirect("/")
@@ -361,11 +407,9 @@ def sell():
         for item in stock_list_query:
             stock_list.append(item['symbol'])
 
-        print(stock_list)
+        # print(stock_list)
 
         return render_template("sell.html", stock_list = stock_list)
-
-
 
 
 def errorhandler(e):
