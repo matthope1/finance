@@ -107,73 +107,76 @@ def buy():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-            symbol = request.form.get("symbol")
-            number_of_shares = int(request.form.get("shares"))
+        symbol = request.form.get("symbol")
+        number_of_shares = int(request.form.get("shares"))
 
-            #if the user left the symbol blank on the form
-            if not symbol:
-                return apology("must provide a symbol", 403)
+        #if the user left the symbol blank on the form
+        if not symbol:
+            return apology("must provide a symbol", 403)
 
-            # the user left the number of shares blank
-            if not number_of_shares:
-                return apology("must provide number of shares",403)
+        # the user left the number of shares blank
+        if not number_of_shares:
+            return apology("must provide number of shares",403)
 
-            stock_data = lookup(symbol)
+        stock_data = lookup(symbol)
 
-            # if lookup returns with valid data
-            if stock_data:
-
-                if isinstance(number_of_shares, int) and number_of_shares > 0:
-                    price_per_share = stock_data["price"]
-
-                    amount_to_spend = price_per_share * number_of_shares
-
-                    rows = db.execute("SELECT cash FROM users WHERE id = :user_id",
-                          user_id = session["user_id"])
-
-                    cash = rows[0]["cash"]
-                    current_date_time = datetime.now()
-                    dt_string = current_date_time.strftime("%d/%m/%Y %H:%M:%S")
+        # if lookup returns with valid data
+        if not stock_data:
+            return apology("invalid symbol", 400)
 
 
-                    #check if user has enough cash to buy their shares, render apology if they dont
-
-                    if cash < amount_to_spend:
-                        return apology("insufficient funds in account", 403)
-
-                    else:
-
-                        #were going to need to update the user table
-                        #the current users cash needs to be subtracted with "UPDATE"
-                        #update the table by setting current users cash to cash left
-
-                        cash_left = cash - amount_to_spend
+        #TODO test this
+        if not (isinstance(number_of_shares, int) and number_of_shares > 0):
+            return apology("number of shares must be a valid number greater than 0", 403)
 
 
+        price_per_share = stock_data["price"]
 
-                        # print("The data to be inserted into transactions table")
-                        # print("the user:", session["user_id"], "Has this:", cash, " and will have", cash_left, " After the transaction")
-                        # print("(symbol, shares, price, date)")
-                        # print("symbol:", symbol, " shares:", number_of_shares, "price: ", price_per_share, " datetime", current_date_time)
-                        # print(dt_string)
+        amount_to_spend = price_per_share * number_of_shares
 
-                        db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash = cash_left, user_id = session["user_id"])
+        rows = db.execute("SELECT cash FROM users WHERE id = :user_id",
+              user_id = session["user_id"])
 
-                        #add new transaction to transactions table
-                        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date) VALUES (:user_id, :symbol, :shares, :price, CURRENT_TIMESTAMP )",
-                        user_id = session["user_id"], symbol = symbol, shares = number_of_shares, price = price_per_share)
-
-                        flash("Buy sucessful!")
-                        return render_template("index.html")
+        cash = rows[0]["cash"]
+        current_date_time = datetime.now()
+        #dt_string = current_date_time.strftime("%d/%m/%Y %H:%M:%S")
 
 
-                    #add one or more new tables to keep track of purchases
+        #check if user has enough cash to buy their shares, render apology if they dont
 
-                else:
-                    return apology("number of shares must be a valid number greater than 0", 403)
+        if cash < amount_to_spend:
+            return apology("insufficient funds in account", 403)
 
-            else:
-                return apology("invalid symbol", 400)
+        else:
+
+            #were going to need to update the user table
+            #the current users cash needs to be subtracted with "UPDATE"
+            #update the table by setting current users cash to cash left
+
+            cash_left = cash - amount_to_spend
+
+
+
+            # print("The data to be inserted into transactions table")
+            # print("the user:", session["user_id"], "Has this:", cash, " and will have", cash_left, " After the transaction")
+            # print("(symbol, shares, price, date)")
+            # print("symbol:", symbol, " shares:", number_of_shares, "price: ", price_per_share, " datetime", current_date_time)
+            # print(dt_string)
+
+            db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash = cash_left, user_id = session["user_id"])
+
+            #add new transaction to transactions table
+            db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date) VALUES (:user_id, :symbol, :shares, :price, CURRENT_TIMESTAMP )",
+            user_id = session["user_id"], symbol = symbol, shares = number_of_shares, price = price_per_share)
+
+            flash("Buy sucessful!")
+            return redirect("/")
+
+
+
+
+
+
 
 
     # User reached route via GET (as by clicking a link or via redirect)
