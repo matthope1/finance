@@ -172,13 +172,6 @@ def buy():
             flash("Buy sucessful!")
             return redirect("/")
 
-
-
-
-
-
-
-
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("buy.html")
@@ -190,7 +183,18 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+        # User reached route via GET
+
+    history_query = db.execute("SELECT symbol, shares, price, date FROM transactions WHERE user_id = :user_id", user_id = session["user_id"])
+
+
+
+    for item in history_query:
+        print(item)
+
+
+
+    return render_template("history.html", history = history_query)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -413,7 +417,25 @@ def sell():
         # print(stock_list)
 
         return render_template("sell.html", stock_list = stock_list)
+@app.route("/sell", methods=["GET", "POST"])
 
+
+@app.route("/profile")
+@login_required
+def profile():
+    """ Manage user profile """
+
+    print(session)
+
+    username_query = db.execute("SELECT username FROM users WHERE id = :user_id", user_id = session["user_id"])
+
+    print(username_query)
+
+    username = username_query[0]["username"]
+
+    print(username)
+
+    return render_template("profile.html", user = username)
 
 def errorhandler(e):
     """Handle error"""
