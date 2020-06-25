@@ -417,7 +417,6 @@ def sell():
         # print(stock_list)
 
         return render_template("sell.html", stock_list = stock_list)
-@app.route("/sell", methods=["GET", "POST"])
 
 
 @app.route("/profile")
@@ -436,6 +435,49 @@ def profile():
     print(username)
 
     return render_template("profile.html", user = username)
+
+    #what do we want to display on the manage profile page?
+    #change passwords and add cash
+    # to do that we're gonna need two more html pages with forms to manage that.
+    #so firstly on the profile page wer're gonna need to have buttons to redirect to
+    #the other management pages
+
+
+
+@app.route("/change-pass", methods=["GET","POST"])
+@login_required
+def change_pass():
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        #TODO
+        #the form should ask the user for their password
+        # and then query the users table to check if passwords match
+        #then update password to new password from another form field
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("change-pass.html")
+
+s
+@app.route("/add-cash", methods=["GET","POST"])
+@login_required
+def add_cash():
+
+    # User reached route via POST (as by submitting a form via POST)
+
+    if request.method == "POST":
+        # We need to get a number input from the form
+        # and update the users table
+        # we could potentially add a fake payment gateway with a
+        # credit card checksum validator
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+
+        return render_template("add-cash.html")
+
+
 
 def errorhandler(e):
     """Handle error"""
