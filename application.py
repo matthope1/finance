@@ -319,6 +319,7 @@ def register():
 
         db.execute("INSERT INTO users (username, hash) VALUES (:username, :password)", username = username, password = hashed_pass)
 
+
         flash("Registration sucessful!", "info")
         return redirect("/")
 
@@ -424,15 +425,15 @@ def sell():
 def profile():
     """ Manage user profile """
 
-    print(session)
+    # print(session)
 
     username_query = db.execute("SELECT username FROM users WHERE id = :user_id", user_id = session["user_id"])
 
-    print(username_query)
+    # print(username_query)
 
     username = username_query[0]["username"]
 
-    print(username)
+    # print(username)
 
     return render_template("profile.html", user = username)
 
@@ -455,11 +456,41 @@ def change_pass():
         # and then query the users table to check if passwords match
         #then update password to new password from another form field
 
+        old_pass = request.form.get("old-password")
+        new_pass = request.form.get("new-password")
+        confirm_new = request.form.get("confirm-new")
+
+
+        if not old_pass:
+            return apology("Missing old password")
+
+        if not new_pass:
+            return apology("missing new-password")
+
+        if not confirm_new:
+            return apology("missing password confirmation")
+
+
+        hash_query = db.execute("SELECT hash FROM users where id = :user_id", user_id = session["user_id"])
+
+        if len(hash_query) != 1 or not check_password_hash(hash_query[0]["hash"], old_pass):
+            return apology("Invalid old password", 403)
+
+        if new_pass != confirm_new:
+            return apology("passwords must match")
+
+        hashed_pass = generate_password_hash(new_pass)
+
+        db.execute("UPDATE users SET hash = :password WHERE id = :user_id", password = hashed_pass, user_id = session["user_id"])
+
+        flash("Password Changed!")
+        return redirect("/")
+
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("change-pass.html")
 
-s
+
 @app.route("/add-cash", methods=["GET","POST"])
 @login_required
 def add_cash():
@@ -471,6 +502,8 @@ def add_cash():
         # and update the users table
         # we could potentially add a fake payment gateway with a
         # credit card checksum validator
+
+        print("TODO: add cash")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
