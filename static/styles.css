@@ -88,7 +88,9 @@ main img
     display: block;
     margin: 0 auto;
     margin-bottom: 10px;
-    padding: 10px 10px 10px 10px;
+    padding: 10px 0px 10px 0px;
+    border: none;
+
 }
 
 .profile-buttons a {
@@ -96,6 +98,7 @@ main img
     color: black;
     /*border: solid;*/
     padding: 10px 10px 10px 10px;
+
 
 
 }

@@ -8,6 +8,7 @@ from werkzeug.exceptions import default_exceptions, HTTPException, InternalServe
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required, lookup, usd
+from credit import credit_validation
 
 from datetime import datetime
 
@@ -189,8 +190,8 @@ def history():
 
 
 
-    for item in history_query:
-        print(item)
+    # for item in history_query:
+    #     print(item)
 
 
 
