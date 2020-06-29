@@ -543,11 +543,14 @@ def add_cash():
         cash_query = db.execute("SELECT cash from users where id = :user_id", user_id = session["user_id"])
         cash = cash_query[0]['cash']
 
+        #print("current cash: ", cash)
         cash = cash + amount
-        print(cash)
-         # db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", user_id = session["user_id"]
+        #print("amount to add", amount)
+        #print("updated cash value",cash)
 
-        flash("added cash")
+        db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash = cash, user_id = session["user_id"])
+
+        flash("Added Cash!")
         return redirect("/")
 
 
