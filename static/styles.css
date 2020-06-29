@@ -99,6 +99,20 @@ main img
     /*border: solid;*/
     padding: 10px 10px 10px 10px;
 
+}
 
+/* add cash page */
 
+/* get rid of the arrow in number input */
+.add-cash-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+
+}
+
+/*.payment-input.form-control {*/
+/*    display: inline-block;*/
+/*}*/
+
+.payment-labels {
+    display: block;
 }

@@ -91,5 +91,6 @@ def credit_validation(card_num):
     else:
         print("INVALID")
 
+    return card_valid
 
 

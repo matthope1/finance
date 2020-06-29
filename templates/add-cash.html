@@ -10,8 +10,32 @@
 
     <form action="/add-cash" method="post">
         <div class="form-group">
-            <input type="number" placeholder="type in an amount"></input>
+            <input class="add-cash-input form-control" type="number" name="amount" placeholder="Amount to add" ></input>
         </div>
+
+        <hr>
+
+        <h1>Payment</h1>
+        <label for="name" class="payment-labels">Name on card</label>
+        <input autocomplete="off" autofocus class="payment-input form-control" name="name" type="text">
+
+        <label for="credit" class="payment-labels">Credit card number</label>
+        <input autocomplete="off"  class="payment-input form-control" name="creditC" type="text">
+
+        <label for="expiration" class="payment-labels">Expiration</label>
+        <input autocomplete="off"  class="payment-input form-control" name="expiration" type="text">
+
+        <label for="ccv" class="payment-labels">CCV</label>
+        <input autocomplete="off"  class="payment-input form-control" name="ccv" type="text">
+
+
+
+
+        <hr>
+
+        <button class="btn btn-primary" type="submit">Add cash</button>
+
+
     </form>
 
 {% endblock %}

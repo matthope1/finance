@@ -399,6 +399,7 @@ def sell():
 
 
 
+
         # print(stock_symbol)
         # print(sell_quantity)
 
@@ -495,7 +496,7 @@ def change_pass():
 @app.route("/add-cash", methods=["GET","POST"])
 @login_required
 def add_cash():
-
+    #5555555555554444
     # User reached route via POST (as by submitting a form via POST)
 
     if request.method == "POST":
@@ -504,7 +505,53 @@ def add_cash():
         # we could potentially add a fake payment gateway with a
         # credit card checksum validator
 
-        print("TODO: add cash")
+        #name credit expiration ccv
+        amount = int(request.form.get("amount"))
+
+        name = request.form.get("name")
+        credit = request.form.get("creditC")
+        expiration = request.form.get("expiration")
+        ccv = request.form.get("ccv")
+
+
+        if not amount:
+            return apology("missing amount")
+
+        if not name:
+            return apology("missing name")
+
+        if not credit:
+            return apology("missing credit card number")
+
+        if not expiration:
+            return apology("missing expiration date")
+
+        if not ccv:
+            return apology("missing ccv")
+
+        print(amount)
+        print(name)
+        print(credit)
+        print(expiration)
+        print(ccv)
+
+        card_valid = credit_validation(credit)
+
+        if not card_valid:
+            return apology("Invalid credit card information")
+
+        cash_query = db.execute("SELECT cash from users where id = :user_id", user_id = session["user_id"])
+        cash = cash_query[0]['cash']
+
+        cash = cash + amount
+        print(cash)
+         # db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", user_id = session["user_id"]
+
+        flash("added cash")
+        return redirect("/")
+
+
+
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
