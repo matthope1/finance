@@ -9,7 +9,7 @@
 {%block main %}
 
     <div class="registerPage">
-        <form action="/register" method="post" onsubmit="agreeChecked()">
+        <form action="/register" method="post">
             <h1>Register</h1>
             <p>Create your account! now!!</p>
             <div class="form-group">
@@ -18,9 +18,9 @@
                 <input autocomplete="off"  class="form-control" name="confirmation" placeholder="Confirm Password" type="text">
             </div>
 
-            <input type="checkbox" name="checkbox" value="check" id="agree" /> I have read and agree to the Terms and Conditions and Privacy Policy
+            <input type="checkbox" name="terms-checkbox" value="check" id="terms-checkbox" onclick="termsChecked(this)" /> I have read and agree to the Terms and Conditions and Privacy Policy
 
-            <button class="btn btn-primary" type="submit">Register Now</button>
+            <button class="btn btn-primary" type="submit" name="submit-button" id="submit-button" disabled >Register Now</button>
 
         </form>
     </div>

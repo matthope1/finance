@@ -1,16 +1,12 @@
 
 // register page
 
-function agreeChecked() {
 
-    alert("this function is called");
-    if (document.getElementById('agree').checked)
-    {
-        return true;
-    }
-    else
-    {
-        alert("Please read Terms and conditions and check box");
-        return false;
+
+function termsChecked(termsCheckBox) {
+    if (termsCheckBox.checked) {
+        document.getElementById("submit-button").disabled = false;
+    } else {
+        document.getElementById("submit-button").disabled = true;
     }
 }

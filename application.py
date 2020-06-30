@@ -49,31 +49,20 @@ if not os.environ.get("API_KEY"):
 def index():
     """Show portfolio of stocks"""
 
-    # to get list of all the stocks a particular user has
-    # we can select distinct symbol from transactions where userid = current user
-    #then we can add up all the amounts of shares +/- and then
-    # multipy by current stock price using lookup
-    # to find the total amount for any given stock
-
-    #to send this data to the index page
-    #we can create a 2d array to store symbol name shares price total
-    #for each of the stocks that the current user owns
-    #then we can display a a tr with 5 tds on the index page with afformententioned info
-
-
+    #query database to get list of stocks that current user owns
     stock_list = db.execute("SELECT DISTINCT symbol FROM transactions WHERE user_id =  :user_id",
                           user_id = session["user_id"])
-
+    #query users database to get amount of cash that current user has
     cash_query = db.execute("SELECT cash from users where id = :user_id", user_id = session["user_id"])
 
     cash = round(cash_query[0]["cash"], 2)
 
     #2d list to store stock data
-    stock_info_list = [] #symbol Name Shares Price TOTAL
+    stock_info_list = []
 
 
-    for item in stock_list:
-        stock_symbol = item['symbol']
+    for stock in stock_list:
+        stock_symbol = stock['symbol']
 
         stock_lookup = lookup(stock_symbol)
 
@@ -83,20 +72,17 @@ def index():
         num_of_shares_query = db.execute("SELECT SUM(shares) FROM transactions WHERE user_id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = stock_symbol)
 
         num_of_shares_owned = num_of_shares_query[0]['SUM(shares)']
-        # print(item)
-        stock_info_list.append([stock_symbol, stock_name, num_of_shares_owned, price_per_share, price_per_share * num_of_shares_owned ])
+        stock_info_list.append([stock_symbol, stock_name, num_of_shares_owned, price_per_share, round(price_per_share * num_of_shares_owned, 2)])
+
+    #total amount of cash + stock user owns
+    account_total = 0
+    for stock in stock_info_list:
+        account_total = account_total + stock[4]
+
+    account_total = round(account_total + cash, 2)
 
 
-
-    total = 0
-    for item in stock_info_list:
-        total = total + item[4]
-        # print(item)
-
-    total = round(total + cash, 2)
-
-
-    return render_template("index.html", stock_info_list = stock_info_list, cash = cash, total = total)
+    return render_template("index.html", stock_info_list = stock_info_list, cash = cash, total = account_total)
 
 
 
@@ -125,8 +111,7 @@ def buy():
         if not stock_data:
             return apology("invalid symbol", 400)
 
-
-        #TODO test this
+        #if number of shares isnt a number or its value is less than 1
         if not (isinstance(number_of_shares, int) and number_of_shares > 0):
             return apology("number of shares must be a valid number greater than 0", 403)
 
@@ -135,35 +120,19 @@ def buy():
 
         amount_to_spend = price_per_share * number_of_shares
 
-        rows = db.execute("SELECT cash FROM users WHERE id = :user_id",
+        cash_query = db.execute("SELECT cash FROM users WHERE id = :user_id",
               user_id = session["user_id"])
 
-        cash = rows[0]["cash"]
-        current_date_time = datetime.now()
-        #dt_string = current_date_time.strftime("%d/%m/%Y %H:%M:%S")
+        cash = cash_query[0]["cash"]
 
-
-        #check if user has enough cash to buy their shares, render apology if they dont
-
+        #check if user has enough cash to buy their shares
         if cash < amount_to_spend:
             return apology("insufficient funds in account", 403)
 
         else:
 
-            #were going to need to update the user table
-            #the current users cash needs to be subtracted with "UPDATE"
-            #update the table by setting current users cash to cash left
-
             cash_left = cash - amount_to_spend
-
-
-
-            # print("The data to be inserted into transactions table")
-            # print("the user:", session["user_id"], "Has this:", cash, " and will have", cash_left, " After the transaction")
-            # print("(symbol, shares, price, date)")
-            # print("symbol:", symbol, " shares:", number_of_shares, "price: ", price_per_share, " datetime", current_date_time)
-            # print(dt_string)
-
+            #update cash on users table to reflect transaction
             db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash = cash_left, user_id = session["user_id"])
 
             #add new transaction to transactions table
@@ -188,13 +157,6 @@ def history():
 
     history_query = db.execute("SELECT symbol, shares, price, date FROM transactions WHERE user_id = :user_id", user_id = session["user_id"])
 
-
-
-    # for item in history_query:
-    #     print(item)
-
-
-
     return render_template("history.html", history = history_query)
 
 
@@ -217,15 +179,15 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
+        username_query = db.execute("SELECT * FROM users WHERE username = :username",
                           username=request.form.get("username"))
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(username_query) != 1 or not check_password_hash(username_query[0]["hash"], request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = username_query[0]["id"]
 
         # Redirect user to home page
         return redirect("/")
@@ -254,13 +216,12 @@ def quote():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
             symbol = request.form.get("symbol")
-            # print("this happens...1")
 
             if not symbol:
                 return apology("must provide a symbol",403)
 
             quote = lookup(symbol)
-
+            #if lookup for that symbol returns valid response
             if quote:
                 name = quote["name"]
                 price = quote["price"]
@@ -291,24 +252,21 @@ def register():
 
         password = request.form.get("password")
 
-        #print("Username: ", username)
-        #print("Password: ", password)
-
-        #ensure that user input a username
+        #make sure that user input a username
         if not username:
             return apology("must provide a username", 403)
 
 
-        rows = db.execute("SELECT username FROM users WHERE username = :username",
+        username_query = db.execute("SELECT username FROM users WHERE username = :username",
                                 username=username)
 
 
         #check if username already exists
-        if len(rows) == 1:
+        if len(username_query) == 1:
             return apology("username taken",403)
 
 
-        #ensure that user input a passowrd
+        #make sure that user input a passowrd
         if not password:
             return apology("must provide a password", 403)
 
@@ -321,17 +279,14 @@ def register():
         db.execute("INSERT INTO users (username, hash) VALUES (:username, :password)", username = username, password = hashed_pass)
 
 
-        flash("Registration sucessful!", "info")
-        return redirect("/")
+        flash("Registration sucessful!")
+        return render_template("login.html")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
 
         return render_template("register.html")
 
-
-
-    #return apology("TODO")
 
 
 @app.route("/sell", methods=["GET", "POST"])
@@ -346,11 +301,6 @@ def sell():
         sell_quantity = int(request.form.get("shares"))
 
 
-
-        #render apology if user fails to select stock or if user does not own any shares CHECK
-        #if quantity is not a positive int render apology CHECK
-        #if user does not own that many shares of said stock return apology CHECK
-
         if not stock_symbol:
             return apology("missing symbol")
 
@@ -360,26 +310,16 @@ def sell():
         if sell_quantity < 0:
             return apology("Number of shares must be greater than 0")
 
-
-        num_of_shares_query = db.execute("SELECT SUM(shares) FROM transactions WHERE id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = stock_symbol)
+        #query transactions database to calculate how many shares user owns
+        num_of_shares_query = db.execute("SELECT SUM(shares) FROM transactions WHERE user_id = :user_id and symbol = :symbol", user_id = session["user_id"], symbol = stock_symbol)
         num_of_shares_owned = num_of_shares_query[0]['SUM(shares)']
-
-
-        print(num_of_shares_owned, sell_quantity)
-        print(num_of_shares_owned >= sell_quantity)
 
         if not (num_of_shares_owned > 0 and num_of_shares_owned >= sell_quantity):
             return apology("not enough shares owned")
 
-        #TODO
-        #if everythings good then you need to update user table and transactions table to reflect the sell for
-        #current user
-        #users table: we need to add the amount of cash that user will get from selling stock
-
         stock_lookup = lookup(stock_symbol)
 
         price_per_share = stock_lookup["price"]
-
 
         current_cash = db.execute("SELECT cash FROM users WHERE id = :user_id",
               user_id = session["user_id"])
@@ -398,11 +338,6 @@ def sell():
                         user_id = session["user_id"], symbol = stock_symbol, shares = sell_quantity, price = price_per_share)
 
 
-
-
-        # print(stock_symbol)
-        # print(sell_quantity)
-
         flash("Sold!")
         return redirect("/")
 
@@ -417,8 +352,6 @@ def sell():
         for item in stock_list_query:
             stock_list.append(item['symbol'])
 
-        # print(stock_list)
-
         return render_template("sell.html", stock_list = stock_list)
 
 
@@ -427,23 +360,11 @@ def sell():
 def profile():
     """ Manage user profile """
 
-    # print(session)
-
     username_query = db.execute("SELECT username FROM users WHERE id = :user_id", user_id = session["user_id"])
-
-    # print(username_query)
 
     username = username_query[0]["username"]
 
-    # print(username)
-
     return render_template("profile.html", user = username)
-
-    #what do we want to display on the manage profile page?
-    #change passwords and add cash
-    # to do that we're gonna need two more html pages with forms to manage that.
-    #so firstly on the profile page wer're gonna need to have buttons to redirect to
-    #the other management pages
 
 
 
@@ -453,10 +374,6 @@ def change_pass():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-        #TODO
-        #the form should ask the user for their password
-        # and then query the users table to check if passwords match
-        #then update password to new password from another form field
 
         old_pass = request.form.get("old-password")
         new_pass = request.form.get("new-password")
@@ -496,16 +413,10 @@ def change_pass():
 @app.route("/add-cash", methods=["GET","POST"])
 @login_required
 def add_cash():
-    #5555555555554444
     # User reached route via POST (as by submitting a form via POST)
 
     if request.method == "POST":
-        # We need to get a number input from the form
-        # and update the users table
-        # we could potentially add a fake payment gateway with a
-        # credit card checksum validator
 
-        #name credit expiration ccv
         amount = int(request.form.get("amount"))
 
         name = request.form.get("name")
@@ -529,11 +440,6 @@ def add_cash():
         if not ccv:
             return apology("missing ccv")
 
-        print(amount)
-        print(name)
-        print(credit)
-        print(expiration)
-        print(ccv)
 
         card_valid = credit_validation(credit)
 
@@ -543,18 +449,12 @@ def add_cash():
         cash_query = db.execute("SELECT cash from users where id = :user_id", user_id = session["user_id"])
         cash = cash_query[0]['cash']
 
-        #print("current cash: ", cash)
         cash = cash + amount
-        #print("amount to add", amount)
-        #print("updated cash value",cash)
 
         db.execute("UPDATE users SET cash = :cash WHERE id = :user_id", cash = cash, user_id = session["user_id"])
 
         flash("Added Cash!")
         return redirect("/")
-
-
-
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
