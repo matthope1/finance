@@ -3,7 +3,8 @@
 A fantasy Finance game where you can practice investing.
 You can buy stocks with real time stock data provided by `https://iextrading.com/api-exhibit-a/`
 
-
+<img src="https://user-images.githubusercontent.com/17298648/96177663-32195300-0efc-11eb-95cd-e574a0b418c8.PNG" width="500px" height="auto">
+<img src="https://user-images.githubusercontent.com/17298648/96178748-d2bc4280-0efd-11eb-840a-d31487195920.PNG" width="600px">
 
 ## Installation
 
