@@ -12,57 +12,40 @@
 def credit_validation(card_num):
 
 
-    #card_num = get_int("Number: ")
     card_num_string = str(card_num)
 
-    #1.
 
     sum_of_digits = 0;
     total_sum = 0;
 
     card_num_len = len(card_num_string)
 
-    #print("length: ",card_num_len)
 
 
     myString = ""
     for i in range(0, card_num_len - 1, 2):
-        #print(card_num_string[card_num_len - i - 2])
 
         myString = myString + card_num_string[card_num_len - i - 2]
 
-        #print(int(card_num_string[card_num_len - i - 2]) * 2)
-
-        #we need to add the sum of the digits
-
-    #print(myString)
 
     newString = ""
 
     for i in range(len(myString)):
-        #print(int(myString[i] ) * 2, end = "")
         newString = newString + str(int(myString[i]) * 2);
 
-    #print("")
 
     for character in newString:
         sum_of_digits = sum_of_digits + int(character)
 
 
-    #print(sum_of_digits)
     total_sum = total_sum + sum_of_digits
 
 
-    #print("first sum ", sum_of_digits)
-    #print("")
 
     for i in range(0, card_num_len, 2):
-        #print(card_num_string[card_num_len - i - 1])
 
         total_sum = total_sum + int(card_num_string[card_num_len - i - 1])
 
-    #print("total sum ", total_sum)
-    #print("")
 
 
     if total_sum % 10 == 0:
@@ -77,7 +60,6 @@ def credit_validation(card_num):
     and all Visa numbers start with 4.
     """
     if card_valid == True:
-        #print(card_num_string)
 
         if int(card_num_string[0]) == 4:
             print("VISA")
