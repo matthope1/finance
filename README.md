@@ -11,8 +11,11 @@ You can buy stocks with real time stock data provided by `https://iextrading.com
 First create a virtual env in project dir
 `python3 -m venv /path/to/new/virtual/environment`
 
-Second install from requirements.txt using pip 
+Second activate virtual env using source venv/bin/activate
+
+Third install from requirements.txt using pip 
 `pip install -r requirements.txt`
+
 
 
 ## Useage
@@ -21,6 +24,10 @@ Create a flask app env variable
 
 linux:
 `export FLASK_APP=application.py`
+
+Set API key
+
+`export API_KEY={your key here}`
 
 Run flask server
 
